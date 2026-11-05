@@ -8,6 +8,9 @@ from kamar_deluxe import KamarDeluxe
 from kamar_suite import KamarSuite
 from laundry import Laundry
 from room_service import RoomService
+from exceptions import (HotelError, DataTidakValidError,
+                        KamarTidakTersediaError, TanggalTidakValidError,
+                        ReservasiError)
 
 
 def judul(teks):
@@ -26,7 +29,6 @@ if __name__ == "__main__":
     for kamar in (k1, k2, k3):
         hotel.tambah_kamar(kamar)
     print(hotel)
-    print()
     print(k1)
     print(k2)
     print(k3)
@@ -37,39 +39,110 @@ if __name__ == "__main__":
     print(budi)
     print(sari)
 
-    judul("3. UJI VALIDASI SETTER")
-    try:
-        budi.no_telepon = "abc123"
-    except ValueError as e:
-        print("no_telepon = 'abc123'  ->", e)
+    judul("3. UJI ATURAN BISNIS (DATA TIDAK VALID)")
+    
     try:
         k1.harga_per_malam = -500000
-    except ValueError as e:
-        print("harga = -500000        ->", e)
+    except DataTidakValidError as e:
+        print("[DataTidakValidError] harga = -500000 ->", e)
+    else:
+        print("Harga berhasil diubah")
+    finally:
+        print("  (uji harga selesai)")
 
-    judul("4. PERBANDINGAN OBJECT (==)")
-    budi_lagi = Tamu("T001", "Budi S.", "081200000000")
-    print("budi == budi_lagi :", budi == budi_lagi)
-    print("budi == sari      :", budi == sari)
+    try:
+        budi.no_telepon = "abc123"
+    except DataTidakValidError as e:
+        print("[DataTidakValidError] no_telepon = 'abc123' ->", e)
+    else:
+        print("No telepon berhasil diubah")
+    finally:
+        print("  (uji telepon selesai)")
+
+    try:
+        hotel.tambah_kamar(KamarStandard("101", 350000))
+    except DataTidakValidError as e:
+        print("[DataTidakValidError] kamar duplikat ->", e)
+    else:
+        print("Kamar berhasil ditambahkan")
+    finally:
+        print("  (uji kamar duplikat selesai)")
+
+    judul("4. UJI TANGGAL TIDAK VALID")
+    try:
+        budi.buat_reservasi([k1], date(2026, 11, 3), date(2026, 11, 1))
+    except TanggalTidakValidError as e:
+        print("[TanggalTidakValidError] ->", e)
+    except HotelError as e:
+        print("[HotelError] ->", e)
+    else:
+        print("Reservasi berhasil dibuat")
+    finally:
+        print("  (uji tanggal selesai)")
 
     judul("5. SKENARIO RESERVASI")
     print("Kamar tersedia (awal)      :", len(hotel.cari_kamar_tersedia()))
-    r1 = budi.buat_reservasi([k1, k2], date(2026, 11, 1), date(2026, 11, 3))
-    print(r1)
-    r1.tambah_layanan(Laundry(3))
-    r1.tambah_layanan(RoomService("Nasi Goreng", 45000, 2))
-    print()
-    print("Tagihan:")
-    print(r1.tagihan.cetak())
-    print()
+    r1 = None
+    try:
+        r1 = budi.buat_reservasi([k1, k2], date(2026, 11, 1), date(2026, 11, 3))
+        r1.tambah_layanan(Laundry(3))
+        r1.tambah_layanan(RoomService("Nasi Goreng", 45000, 2))
+    except KamarTidakTersediaError as e:
+        print("[KamarTidakTersediaError] ->", e)
+    except ReservasiError as e:
+        print("[ReservasiError] ->", e)
+    except HotelError as e:
+        print("[HotelError] ->", e)
+    else:
+        print(r1)
+        print()
+        print("Tagihan:")
+        print(r1.tagihan.cetak())
+    finally:
+        print("Kamar tersedia (dipesan)   :", len(hotel.cari_kamar_tersedia()))
+
     try:
         sari.buat_reservasi([k1, k3], date(2026, 11, 2), date(2026, 11, 4))
-    except ValueError as e:
-        print("Reservasi ditolak          :", e)
-    print("Kamar tersedia (dipesan)   :", len(hotel.cari_kamar_tersedia()))
-    r1.batalkan()
-    print(r1)
-    print("Kamar tersedia (dibatalkan):", len(hotel.cari_kamar_tersedia()))
+    except KamarTidakTersediaError as e:
+        print("[KamarTidakTersediaError] Reservasi ditolak ->", e)
+    except HotelError as e:
+        print("[HotelError] ->", e)
+    else:
+        print("Reservasi Sari berhasil")
+    finally:
+        print("  (uji kamar terisi selesai)")
+
+    try:
+        sari.buat_reservasi([], date(2026, 11, 2), date(2026, 11, 4))
+    except ReservasiError as e:
+        print("[ReservasiError] ->", e)
+    finally:
+        print("  (uji reservasi kosong selesai)")
+
+    try:
+        sari.buat_reservasi([k3, k3], date(2026, 11, 2), date(2026, 11, 4))
+    except ReservasiError as e:
+        print("[ReservasiError] kamar ganda ->", e)
+    finally:
+        print("  (uji kamar ganda selesai)")
+
+    try:
+        r1.batalkan()
+        print(r1)
+        r1.batalkan()
+    except ReservasiError as e:
+        print("[ReservasiError] batal kedua ->", e)
+    else:
+        print("Pembatalan berhasil")
+    finally:
+        print("Kamar tersedia (dibatalkan):", len(hotel.cari_kamar_tersedia()))
+
+    try:
+        r1.tambah_layanan(Laundry(1))
+    except ReservasiError as e:
+        print("[ReservasiError] tambah layanan setelah batal ->", e)
+    finally:
+        print("  (uji tambah layanan selesai)")
 
     judul("6. CLASS ATTRIBUTE DAN URUTAN CONSTRUCTOR")
     print("Jumlah Tamu      :", Tamu.jumlah_tamu)

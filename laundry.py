@@ -1,6 +1,5 @@
 from layanan_tambahan import LayananTambahan
 
-
 class Laundry(LayananTambahan):
     BIAYA_PER_KG = 15000  
 
