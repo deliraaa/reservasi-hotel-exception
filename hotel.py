@@ -1,11 +1,14 @@
 from kamar import Kamar
+from exceptions import DataTidakValidError
 
 
 class Hotel:
     def __init__(self, nama, alamat):
+        if not nama or not nama.strip():
+            raise DataTidakValidError("Nama hotel tidak boleh kosong")
         self.__nama = nama
         self.__alamat = alamat
-        self.__daftar_kamar = []   
+        self.__daftar_kamar = []
 
     @property
     def nama(self):
@@ -13,7 +16,10 @@ class Hotel:
 
     def tambah_kamar(self, kamar):
         if not isinstance(kamar, Kamar):
-            raise TypeError("Yang ditambahkan harus object Kamar")
+            raise DataTidakValidError("Yang ditambahkan harus object Kamar")
+        if any(k.nomor_kamar == kamar.nomor_kamar for k in self.__daftar_kamar):
+            raise DataTidakValidError(
+                f"Kamar {kamar.nomor_kamar} sudah terdaftar di hotel")
         self.__daftar_kamar.append(kamar)
 
     def cari_kamar_tersedia(self):

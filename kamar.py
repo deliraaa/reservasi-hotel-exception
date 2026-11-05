@@ -1,17 +1,21 @@
+from exceptions import DataTidakValidError, KamarTidakTersediaError
+
+
 class Kamar:
-    jumlah_kamar = 0  
+    jumlah_kamar = 0
 
     def __init__(self, nomor_kamar, harga_per_malam, fasilitas):
-        self.__nomor_kamar = nomor_kamar     
-        self._harga_per_malam = 0            
-        self._fasilitas = list(fasilitas)     
-        self.__tersedia = True                
-        self.harga_per_malam = harga_per_malam  
+        if not str(nomor_kamar).strip():
+            raise DataTidakValidError("Nomor kamar tidak boleh kosong")
+        self.__nomor_kamar = nomor_kamar
+        self._harga_per_malam = 0
+        self._fasilitas = list(fasilitas)
+        self.__tersedia = True
+        self.harga_per_malam = harga_per_malam
         Kamar.jumlah_kamar += 1
 
     @property
     def nomor_kamar(self):
-        
         return self.__nomor_kamar
 
     @property
@@ -20,8 +24,8 @@ class Kamar:
 
     @harga_per_malam.setter
     def harga_per_malam(self, nilai):
-        if nilai <= 0:
-            raise ValueError("Harga per malam harus lebih dari 0")
+        if not isinstance(nilai, (int, float)) or nilai <= 0:
+            raise DataTidakValidError("Harga per malam harus lebih dari 0")
         self._harga_per_malam = nilai
 
     @property
@@ -29,6 +33,9 @@ class Kamar:
         return self.__tersedia
 
     def pesan(self):
+        if not self.__tersedia:
+            raise KamarTidakTersediaError(
+                f"Kamar {self.__nomor_kamar} sedang terisi")
         self.__tersedia = False
 
     def kosongkan(self):
