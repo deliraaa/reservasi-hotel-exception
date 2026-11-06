@@ -1,15 +1,18 @@
 from reservasi import Reservasi
+from exceptions import DataTidakValidError
 
 
 class Tamu:
-    jumlah_tamu = 0 
+    jumlah_tamu = 0
 
     def __init__(self, id_tamu, nama, no_telepon):
+        if not nama or not nama.strip():
+            raise DataTidakValidError("Nama tamu tidak boleh kosong")
         self.__id_tamu = id_tamu
         self.__nama = nama
         self.__no_telepon = None
         self.__daftar_reservasi = []
-        self.no_telepon = no_telepon      
+        self.no_telepon = no_telepon
         Tamu.jumlah_tamu += 1
 
     @property
@@ -27,7 +30,7 @@ class Tamu:
     @no_telepon.setter
     def no_telepon(self, nilai):
         if not Tamu.validasi_telepon(nilai):
-            raise ValueError("No telepon harus 10-13 digit angka")
+            raise DataTidakValidError("No telepon harus 10-13 digit angka")
         self.__no_telepon = nilai
 
     @property
@@ -36,11 +39,15 @@ class Tamu:
 
     @staticmethod
     def validasi_telepon(nomor):
-        return nomor.isdigit() and 10 <= len(nomor) <= 13
+        return isinstance(nomor, str) and nomor.isdigit() and 10 <= len(nomor) <= 13
 
     @classmethod
     def dari_string(cls, teks):
-        id_tamu, nama, telepon = teks.split("-")
+        bagian = teks.split("-")
+        if len(bagian) != 3:
+            raise DataTidakValidError(
+                "Format harus 'id-nama-telepon', contoh: T001-Budi-081234567890")
+        id_tamu, nama, telepon = bagian
         return cls(id_tamu, nama, telepon)
 
     def buat_reservasi(self, daftar_kamar, check_in, check_out):
