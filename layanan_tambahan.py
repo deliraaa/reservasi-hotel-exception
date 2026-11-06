@@ -1,10 +1,13 @@
+from exceptions import DataTidakValidError
+
+
 class LayananTambahan:
     def __init__(self, nama, biaya_satuan, jumlah):
         self._nama = nama
         self._biaya_satuan = 0
         self._jumlah = 0
-        self.biaya_satuan = biaya_satuan   
-        self.jumlah = jumlah               
+        self.biaya_satuan = biaya_satuan
+        self.jumlah = jumlah
 
     @property
     def biaya_satuan(self):
@@ -12,8 +15,8 @@ class LayananTambahan:
 
     @biaya_satuan.setter
     def biaya_satuan(self, nilai):
-        if nilai <= 0:
-            raise ValueError("Biaya satuan harus lebih dari 0")
+        if not isinstance(nilai, (int, float)) or nilai <= 0:
+            raise DataTidakValidError("Biaya satuan harus lebih dari 0")
         self._biaya_satuan = nilai
 
     @property
@@ -22,8 +25,8 @@ class LayananTambahan:
 
     @jumlah.setter
     def jumlah(self, nilai):
-        if nilai <= 0:
-            raise ValueError("Jumlah layanan harus lebih dari 0")
+        if not isinstance(nilai, (int, float)) or nilai <= 0:
+            raise DataTidakValidError("Jumlah layanan harus lebih dari 0")
         self._jumlah = nilai
 
     def hitung_biaya(self):
