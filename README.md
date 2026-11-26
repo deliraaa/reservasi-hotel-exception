@@ -33,7 +33,10 @@ Semua didefinisikan di `exceptions.py`.
 ```mermaid
 classDiagram
     class Exception
-    class HotelError
+    class HotelError {
+        +pesan : str
+        +__init__(pesan)
+    }
     class DataTidakValidError
     class KamarTidakTersediaError
     class TanggalTidakValidError
@@ -45,71 +48,112 @@ classDiagram
     HotelError <|-- ReservasiError
 
     class Hotel {
-        -nama
-        -alamat
-        -daftar_kamar
-        +tambah_kamar(kamar)
-        +cari_kamar_tersedia()
+        -nama : str
+        -alamat : str
+        -daftar_kamar : list~Kamar~
+        +__init__(nama, alamat)
+        +tambah_kamar(kamar) None
+        +cari_kamar_tersedia() list~Kamar~
+        +__str__() str
     }
     class Kamar {
-        +jumlah_kamar$
-        -nomor_kamar
-        -tersedia
-        #harga_per_malam
-        #fasilitas
-        +pesan()
-        +kosongkan()
-        +hitung_biaya(malam)
-        +deskripsi()
+        +jumlah_kamar : int$
+        -nomor_kamar : str
+        #harga_per_malam : int
+        #fasilitas : list~str~
+        -tersedia : bool
+        +__init__(nomor_kamar, harga_per_malam, fasilitas)
+        +harga_per_malam(nilai) None
+        +pesan() None
+        +kosongkan() None
+        +hitung_biaya(malam) int
+        +deskripsi() str
+        +__str__() str
     }
-    class KamarStandard
-    class KamarDeluxe
-    class KamarSuite
+    class KamarStandard {
+        +__init__(nomor_kamar, harga_per_malam)
+        +deskripsi() str
+    }
+    class KamarDeluxe {
+        +__init__(nomor_kamar, harga_per_malam)
+        +deskripsi() str
+    }
+    class KamarSuite {
+        +__init__(nomor_kamar, harga_per_malam)
+        +deskripsi() str
+    }
     Kamar <|-- KamarStandard
     Kamar <|-- KamarDeluxe
     KamarDeluxe <|-- KamarSuite
 
     class Tamu {
-        +jumlah_tamu$
-        -id_tamu
-        -nama
-        -no_telepon
-        +validasi_telepon(nomor)$
-        +dari_string(teks)$
-        +buat_reservasi(kamar, ci, co)
+        +jumlah_tamu : int$
+        -id_tamu : str
+        -nama : str
+        -no_telepon : str
+        -daftar_reservasi : list~Reservasi~
+        +__init__(id_tamu, nama, no_telepon)
+        +no_telepon(nilai) None
+        +buat_reservasi(daftar_kamar, check_in, check_out) Reservasi
+        +validasi_telepon(nomor) bool$
+        +dari_string(teks) Tamu$
+        +__str__() str
+        +__repr__() str
+        +__eq__(other) bool
     }
     class Reservasi {
-        +jumlah_reservasi$
-        -id_reservasi
-        -check_in
-        -check_out
-        -status
-        +tambah_layanan(layanan)
-        +batalkan()
+        +jumlah_reservasi : int$
+        -id_reservasi : str
+        -tamu : Tamu
+        -daftar_kamar : list~Kamar~
+        -check_in : date
+        -check_out : date
+        -status : str
+        -tagihan : Tagihan
+        +__init__(tamu, daftar_kamar, check_in, check_out)
+        +check_out(nilai) None
+        +lama_menginap() int
+        +tambah_layanan(layanan) None
+        +batalkan() None
+        +__str__() str
     }
     class Tagihan {
-        -biaya_kamar
-        +tambah_layanan(layanan)
-        +hitung_total()
-        +cetak()
+        -biaya_kamar : int
+        -daftar_layanan : list~LayananTambahan~
+        +__init__(biaya_kamar)
+        +biaya_kamar(nilai) None
+        +tambah_layanan(layanan) None
+        +hitung_biaya_layanan() int
+        +hitung_total() int
+        +cetak() str
     }
     class LayananTambahan {
-        #nama
-        #biaya_satuan
-        #jumlah
-        +hitung_biaya()
-        +keterangan()
+        #nama : str
+        #biaya_satuan : int
+        #jumlah : int
+        +__init__(nama, biaya_satuan, jumlah)
+        +biaya_satuan(nilai) None
+        +jumlah(nilai) None
+        +hitung_biaya() int
+        +keterangan() str
     }
-    class Laundry
-    class RoomService
+    class Laundry {
+        +BIAYA_PER_KG : int$
+        +__init__(berat_kg)
+        +keterangan() str
+    }
+    class RoomService {
+        +__init__(nama_menu, harga, porsi)
+        +keterangan() str
+    }
     LayananTambahan <|-- Laundry
     LayananTambahan <|-- RoomService
 
-    Hotel "1" o-- "*" Kamar
-    Tamu "1" --> "*" Reservasi
-    Reservasi "1" --> "1..*" Kamar
+    Hotel "1" *-- "1..*" Kamar
+    Tamu "1" --> "0..*" Reservasi
+    Reservasi "0..*" --> "1..*" Kamar
     Reservasi "1" *-- "1" Tagihan
-    Tagihan "1" o-- "*" LayananTambahan
+    Tagihan "1" o-- "0..*" LayananTambahan
 
     Kamar ..> DataTidakValidError : raise
     Kamar ..> KamarTidakTersediaError : raise
